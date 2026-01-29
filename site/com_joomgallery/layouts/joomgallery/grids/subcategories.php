@@ -29,6 +29,61 @@ extract($displayData);
  * @var   string   $description     Category description
  * @var   bool     $random_image    True, if a random inage should be loaded (only for categories)
  */
+
+se Joomla\CMS\Factory;
+use Joomla\Database\DatabaseDriver;
+
+/**
+ * counts all pictures in categories and their subcategories
+ *
+ * @param int $catId
+ * @return int
+ */
+function getTotalImagesInCategory($catId)
+{
+  $db = \Joomla\CMS\Factory::getDbo();
+
+  // tables
+  $catTable = $db->quoteName('#__joomgallery_categories');
+  $imgTable = $db->quoteName('#__joomgallery');
+
+  // get categories with lft/rgt
+  $query = $db->getQuery(true)
+    ->select('id, lft, rgt')
+    ->from($catTable)
+    ->where('published = 1');
+  $db->setQuery($query);
+  $cats = $db->loadAssocList('id');
+
+  $idsToCount = [];
+
+  if (isset($cats[$catId])) {
+    $lft = $cats[$catId]['lft'];
+    $rgt = $cats[$catId]['rgt'];
+
+    // find subcategories
+    foreach ($cats as $id => $cat) {
+      if ($cat['lft'] >= $lft && $cat['rgt'] <= $rgt) {
+        $idsToCount[] = (int) $id;
+      }
+    }
+  }
+
+  if (empty($idsToCount)) {
+    return 0;
+  }
+
+  // count images
+  $query = $db->getQuery(true)
+    ->select('COUNT(*)')
+    ->from($imgTable)
+    ->where('catid IN (' . implode(',', $idsToCount) . ')')
+    ->where('published = 1');
+  $db->setQuery($query);
+
+  return (int) $db->loadResult();
+}
+
 ?>
 
 <div class="jg-gallery" itemscope="" itemtype="https://schema.org/ImageGallery">
@@ -59,11 +114,25 @@ extract($displayData);
           </a>
         </div>
         <?php if($layout != 'justified') : ?>
-          <div class="jg-image-caption <?php echo $caption_align; ?>">
-            <a class="jg-link" href="<?php echo Route::_(JoomHelper::getViewRoute('category', (int) $item->id)); ?>">
-              <?php echo $this->escape($item->title); ?>
-            </a>
-          </div>
+          <div class="jg-image">
+        <div class="jg-image-thumbnail<?php if($image_class && $layout != 'justified') : ?><?php echo ' boxed'; ?><?php endif; ?>">
+          <a href="<?php echo Route::_(JoomHelper::getViewRoute('category', (int) $item->id)); ?>">
+            <img src="<?php echo JoomHelper::getImg($item->thumbnail, $img_type); ?>" class="jg-image-thumb" alt="<?php echo $this->escape($item->title); ?>" itemprop="image" itemscope="" itemtype="https://schema.org/image"<?php if( $layout != 'justified') : ?> loading="lazy"<?php endif; ?>>
+            <?php if($layout == 'justified') : ?>
+              <div class="jg-image-caption-hover <?php echo $caption_align; ?>">
+                <?php echo $this->escape($item->title); ?>
+              </div>
+            <?php endif; ?>
+          </a>
+        </div>
+        <?php if($layout != 'justified') : ?>
+<div class="jg-image-caption <?php echo $caption_align; ?>">
+  <a class="jg-link" href="<?php echo Route::_(JoomHelper::getViewRoute('category', (int) $item->id)); ?>">
+    <?php echo $this->escape($item->title); ?>
+  </a>
+  <br>
+  <div class"numberofimages">(<?php echo getTotalImagesInCategory($item->id); ?> Bilder)</div>
+</div>
           <?php if($description) : ?>
             <?php echo $item->description; ?>
           <?php endif; ?>
