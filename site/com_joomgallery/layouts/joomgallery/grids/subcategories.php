@@ -131,7 +131,17 @@ function getTotalImagesInCategory($catId)
     <?php echo $this->escape($item->title); ?>
   </a>
   <br>
-  <div class"numberofimages">(<?php echo getTotalImagesInCategory($item->id); ?> Bilder)</div>
+<?php
+$count = getTotalImagesInCategory($item->id);
+
+if ($count === 1) {
+  $label = Text::_('COM_JOOMGALLERY_IMAGE');
+} else {
+  $label = Text::_('COM_JOOMGALLERY_IMAGES');
+}
+?>
+<div class="numberofimages">
+  (<?php echo $count . ' ' . $label; ?>)
 </div>
           <?php if($description) : ?>
             <?php echo $item->description; ?>
