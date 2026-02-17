@@ -581,12 +581,15 @@ class CategoryModel extends JoomItemModel
 
     // Apply ordering
     $listModel->setState(
-      'list.fullordering',
-      $catform_list['fullordering']
-          ?? $params['configs']->get('jg_category_view_ord_images', 'a.lft ASC', 'string')
+        'list.fullordering',
+        $catform_list['fullordering']
+            ?? $params['configs']->get(
+                'jg_category_view_ord_images',
+                'a.lft ASC',
+                'string'
+            )
     );
-
-  }
+}
 
   /**
    * Method to add a prefix to a list of field names
