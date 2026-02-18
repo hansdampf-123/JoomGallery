@@ -16,6 +16,7 @@ use Joomgallery\Component\Joomgallery\Administrator\Helper\JoomHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Factory;
 
 extract($displayData);
 
@@ -39,6 +40,29 @@ extract($displayData);
  * @var   bool     $image_author      True to display the image author
  * @var   bool     $image_tags        True to display the image tags
  */
+
+/**
+ * load tags
+ */
+function jgGetImageTags(int $imgid): array
+{
+    $db = Factory::getDbo();
+
+    $query = $db->getQuery(true)
+        ->select('t.title')
+        ->from($db->quoteName('#__joomgallery_tags', 't'))
+        ->join(
+            'INNER',
+            $db->quoteName('#__joomgallery_tags_ref', 'r')
+            . ' ON r.tagid = t.id'
+        )
+        ->where('r.imgid = ' . (int) $imgid)
+        ->order('t.title ASC');
+
+    $db->setQuery($query);
+
+    return $db->loadColumn() ?: [];
+}
 ?>
 
 <div class="jg-gallery <?php echo $layout; ?>" itemscope="" itemtype="https://schema.org/ImageGallery">
@@ -65,7 +89,19 @@ extract($displayData);
             </a>
               <?php // lightgallery image caption via data-sub-html ?>
               <?php if($image_title || $image_desc) : ?>
-                <div id="jg-image-caption-<?php echo $item->id; ?>" style="display: none">
+                 <div id="jg-image-caption-<?php echo $item->id; ?>" style="display: none">
+                   <?php if($image_title) : ?>
+                     <div class="jg-image-caption <?php echo $caption_align; ?>">
+                       <?php
+                         $caption = $this->escape($item->title);
+                         $tags = jgGetImageTags((int) $item->id);
+                         if (!empty($tags)) {
+                           $caption .= ' | ' . implode(' | ', array_map('htmlspecialchars', $tags));
+                         }
+                         echo $caption;
+                   ?>
+                 </div>
+              <?php endif; ?>
                   <?php if($image_title) : ?>
                     <div class="jg-image-caption <?php echo $caption_align; ?>">
                       <?php echo $this->escape($item->title); ?>
