@@ -88,32 +88,34 @@ function jgGetImageTags(int $imgid): array
               <?php endif; ?>
             </a>
               <?php // lightgallery image caption via data-sub-html ?>
-              <?php if($image_title || $image_desc) : ?>
-                 <div id="jg-image-caption-<?php echo $item->id; ?>" style="display: none">
-                   <?php if($image_title) : ?>
-                     <div class="jg-image-caption <?php echo $caption_align; ?>">
-                       <?php
-                         $caption = $this->escape($item->title);
-                         $tags = jgGetImageTags((int) $item->id);
-                         if (!empty($tags)) {
-                           $caption .= ' | ' . implode(' | ', array_map('htmlspecialchars', $tags));
-                         }
-                         echo $caption;
-                   ?>
-                 </div>
-              <?php endif; ?>
-                  <?php if($image_title) : ?>
-                    <div class="jg-image-caption <?php echo $caption_align; ?>">
-                      <?php echo $this->escape($item->title); ?>
-                    </div>
-                  <?php endif; ?>
-                  <?php if($image_desc) : ?>
-                    <div class="jg-image-desc <?php echo $caption_align; ?>">
-                      <?php echo $item->description; ?>
-                    </div>
-                  <?php endif; ?>
-                </div>
-              <?php endif; ?>
+              <?php if ($image_title || $image_desc) : ?>
+    <div id="jg-image-caption-<?php echo $item->id; ?>" style="display: none">
+
+        <?php if ($image_title) : ?>
+            <div class="jg-image-caption <?php echo $caption_align; ?>">
+                <?php
+                $caption = $this->escape($item->title);
+
+                $tags = jgGetImageTags((int) $item->id);
+
+                if (!empty($tags)) {
+                    $caption .= ' | ' . implode(' | ', array_map('htmlspecialchars', $tags));
+                }
+
+                echo $caption;
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($image_desc) : ?>
+            <div class="jg-image-desc <?php echo $caption_align; ?>">
+                <?php echo $item->description; ?>
+            </div>
+        <?php endif; ?>
+
+    </div>
+<?php endif; ?>
+
           <?php elseif($image_link == 'defaultview') : ?>
             <a href="<?php echo Route::_(JoomHelper::getViewRoute('image', (int) $item->id, (int) $item->catid)); ?>">
               <img src="<?php echo JoomHelper::getImg($item, $image_type); ?>" class="jg-image-thumb" alt="<?php echo $item->title; ?>" itemprop="image" itemscope="" itemtype="https://schema.org/image"<?php if( $layout != 'justified') : ?> loading="lazy"<?php
