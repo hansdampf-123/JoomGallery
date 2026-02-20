@@ -66,7 +66,7 @@ final class JoomImage extends Adapter implements SubscriberInterface
    * @var    string
    * @since  4.4.0
    */
-  protected $type_title = 'Image (JoomGallery)';
+  protected $type_title = 'PLG_FINDER_JOOMGALLERY_TYPE_IMAGE';
 
   /**
    * The table name.
@@ -552,7 +552,7 @@ final class JoomImage extends Adapter implements SubscriberInterface
       // Add the type taxonomy data.
     if(\in_array('type', $taxonomies))
     {
-      $item->addTaxonomy('Type', 'Image (JoomGallery)');
+      $item->addTaxonomy('Type', 'PLG_FINDER_JOOMGALLERY_TYPE_IMAGE');
     }
 
     // Add the author taxonomy data.
