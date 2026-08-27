@@ -130,6 +130,36 @@ class CategoryModel extends JoomItemModel
       $adminModel = $this->component->getMVCFactory()->createModel('category', 'administrator');
       $this->item = $adminModel->getItem($id);
 
+      // Attempt to load the item
+$adminModel = $this->component->getMVCFactory()->createModel('category', 'administrator');
+$this->item = $adminModel->getItem($id);
+
+if(empty($this->item))
+{
+  throw new \Exception(Text::_('COM_JOOMGALLERY_ITEM_NOT_LOADED'), 404);
+}
+
+// Load translated category title
+$language = $this->app->getLanguage()->getTag();
+$db       = $this->getDatabase();
+$query    = $db->getQuery(true);
+
+$query->select($db->quoteName('title'))
+      ->from($db->quoteName('#__joomgallery_category_translations'))
+      ->where($db->quoteName('category_id') . ' = :categoryId')
+      ->where($db->quoteName('language') . ' = :language')
+      ->bind(':categoryId', $this->item->id)
+      ->bind(':language', $language);
+
+$db->setQuery($query);
+
+$translatedTitle = $db->loadResult();
+
+if(!empty($translatedTitle))
+{
+  $this->item->title = $translatedTitle;
+}
+
       if(empty($this->item))
       {
         throw new \Exception(Text::_('COM_JOOMGALLERY_ITEM_NOT_LOADED'), 404);

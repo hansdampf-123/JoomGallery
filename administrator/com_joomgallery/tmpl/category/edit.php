@@ -82,6 +82,25 @@ $tmpl    = $isModal || $app->input->get('tmpl', '', 'cmd') === 'component' ? '&t
   </div>
   <?php echo HTMLHelper::_('uitab.endTab'); ?>
 
+    <?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'translations', 'Translations'); ?>
+
+<div class="row">
+  <div class="col-12 col-lg-8">
+    <fieldset id="fieldset-translations" class="options-form">
+      <legend>Translations</legend>
+
+      <div>
+        <?php foreach($this->form->getGroup('translations', true) as $field) : ?>
+          <?php echo $field->renderField(); ?>
+        <?php endforeach; ?>
+      </div>
+
+    </fieldset>
+  </div>
+</div>
+
+<?php echo HTMLHelper::_('uitab.endTab'); ?>
+
   <?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'Options', Text::_('JGLOBAL_FIELDSET_BASIC', true)); ?>
   <div class="row">
     <div class="col-12 col-lg-6">

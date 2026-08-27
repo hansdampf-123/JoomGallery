@@ -194,6 +194,26 @@ class CategoriesModel extends JoomListModel
     // Select the required fields from the table.
     $query->select($this->getState('list.select', 'a.*'));
     $query->from($db->quoteName('#__joomgallery_categories', 'a'));
+        // Join translated category title for current frontend language.
+    if($this->app->isClient('site'))
+    {
+      $language = Factory::getApplication()->getLanguage()->getTag();
+
+      $query->join(
+        'LEFT',
+        $db->quoteName('#__joomgallery_category_translations', 'ct'),
+        $db->quoteName('ct.category_id') . ' = ' . $db->quoteName('a.id')
+        . ' AND ' . $db->quoteName('ct.language') . ' = ' . $db->quote($language)
+      );
+
+      $query->select(
+        'COALESCE(NULLIF('
+        . $db->quoteName('ct.title')
+        . ", ''), "
+        . $db->quoteName('a.title')
+        . ') AS ' . $db->quoteName('title')
+      );
+    }
 
     // Join over the users for the checked out user
     $query->select($db->quoteName('uc.name', 'uEditor'));

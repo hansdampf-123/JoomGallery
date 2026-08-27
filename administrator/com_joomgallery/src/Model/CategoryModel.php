@@ -115,8 +115,93 @@ class CategoryModel extends JoomAdminModel
     {
       $form->setFieldAttribute('created_by', 'filter', 'unset');
     }
+    // Load published content languages.
+    $db = Factory::getContainer()->get(DatabaseInterface::class);
 
+    $query = $db->getQuery(true)
+      ->select([
+        $db->quoteName('lang_code'),
+        $db->quoteName('title_native'),
+      ])
+      ->from($db->quoteName('#__languages'))
+      ->where($db->quoteName('published') . ' = 1')
+      ->order($db->quoteName('ordering') . ' ASC');
+
+    $db->setQuery($query);
+    $languages = $db->loadObjectList();
+
+    // Build translation fields as a real Joomla field group.
+    $xml = '<form><fields name="translations">';
+
+    foreach($languages as $language)
+    {
+      $tag = htmlspecialchars(
+        $language->lang_code,
+        ENT_QUOTES,
+        'UTF-8'
+      );
+
+      $name = htmlspecialchars(
+        $language->title_native ?: $language->lang_code,
+        ENT_QUOTES,
+        'UTF-8'
+      );
+
+            $xml .= '
+        <fields name="' . $tag . '">
+          <field
+            name="title"
+            type="text"
+            filter="string"
+            maxlength="255"
+            label="' . $name . ' - Title"
+          />
+
+          <field
+            name="alias"
+            type="text"
+            filter="cmd"
+            maxlength="255"
+            label="' . $name . ' - Alias"
+          />
+        </fields>';
+    }
+
+    $xml .= '</fields></form>';
+
+    $form->load(new \SimpleXMLElement($xml));
+
+    // Load existing translations into the dynamically added fields.
+    if($id > 0)
+    {
+      $query = $db->getQuery(true)
+        ->select([
+          $db->quoteName('language'),
+          $db->quoteName('title'),
+          $db->quoteName('alias'),
+        ])
+        ->from($db->quoteName('#__joomgallery_category_translations'))
+        ->where($db->quoteName('category_id') . ' = ' . $id);
+
+      $db->setQuery($query);
+
+      foreach($db->loadObjectList() as $translation)
+      {
+        $form->setValue(
+          'title',
+          'translations.' . $translation->language,
+          $translation->title
+        );
+
+        $form->setValue(
+          'alias',
+          'translations.' . $translation->language,
+          $translation->alias
+        );
+      }
+    }
     return $form;
+
   }
 
   /**
@@ -139,6 +224,29 @@ class CategoryModel extends JoomAdminModel
       }
 
       $data = $this->item;
+
+            // Load category translations.
+      $data->translations = [];
+
+      if(!empty($data->id))
+      {
+        $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+        $query = $db->getQuery(true)
+          ->select([
+            $db->quoteName('language'),
+            $db->quoteName('title'),
+          ])
+          ->from($db->quoteName('#__joomgallery_category_translations'))
+          ->where($db->quoteName('category_id') . ' = ' . (int) $data->id);
+
+        $db->setQuery($query);
+
+        foreach($db->loadObjectList() as $translation)
+        {
+          $data->translations[$translation->language] = $translation->title;
+        }
+      }
 
       // Support for password field
       $this->is_password = false;
@@ -478,10 +586,12 @@ class CategoryModel extends JoomAdminModel
             $hasImages = true;
           }
 
-          // Check if filesystem adapter has changed
-          $old_params = json_decode($table->params);
+          // Check if filesystem adapter has changed.
+          $old_params = json_decode($table->params, true);
+          $oldFilesystem = $old_params['jg_filesystem'] ?? null;
+          $newFilesystem = $data['params']['jg_filesystem'] ?? $oldFilesystem;
 
-          if($old_params->{'jg_filesystem'} != $data['params']['jg_filesystem'])
+          if($oldFilesystem != $newFilesystem)
           {
             $adapterChanged = true;
           }
@@ -629,9 +739,92 @@ class CategoryModel extends JoomAdminModel
         {
           $this->setError($table->getError());
           $this->component->addLog($table->getError(), 'error', 'jerror');
-
           return false;
         }
+
+                // Save category translations.
+        if(isset($data['translations']) && \is_array($data['translations']))
+        {
+          $db = Factory::getContainer()->get(DatabaseInterface::class);
+
+          foreach($data['translations'] as $language => $translation)
+          {
+            if(!\is_array($translation))
+            {
+              continue;
+            }
+
+            $title = trim((string) ($translation['title'] ?? ''));
+            $alias = trim((string) ($translation['alias'] ?? ''));
+
+            // Empty title means no translation.
+            // Remove the entry so the original category title and alias are used.
+            if($title === '')
+            {
+              $query = $db->getQuery(true)
+                ->delete($db->quoteName('#__joomgallery_category_translations'))
+                ->where($db->quoteName('category_id') . ' = ' . (int) $table->id)
+                ->where($db->quoteName('language') . ' = ' . $db->quote($language));
+
+              $db->setQuery($query);
+              $db->execute();
+
+              continue;
+            }
+
+            // Generate alias from translated title if no alias was entered.
+            if($alias === '')
+            {
+              $alias = \Joomla\CMS\Application\ApplicationHelper::stringURLSafe($title);
+            }
+
+            // Check whether a translation already exists.
+            $query = $db->getQuery(true)
+              ->select('COUNT(*)')
+              ->from($db->quoteName('#__joomgallery_category_translations'))
+              ->where($db->quoteName('category_id') . ' = ' . (int) $table->id)
+              ->where($db->quoteName('language') . ' = ' . $db->quote($language));
+
+            $db->setQuery($query);
+            $exists = (int) $db->loadResult();
+
+            if($exists)
+            {
+              // Update existing translation.
+              $query = $db->getQuery(true)
+                ->update($db->quoteName('#__joomgallery_category_translations'))
+                ->set($db->quoteName('title') . ' = ' . $db->quote($title))
+                ->set($db->quoteName('alias') . ' = ' . $db->quote($alias))
+                ->where($db->quoteName('category_id') . ' = ' . (int) $table->id)
+                ->where($db->quoteName('language') . ' = ' . $db->quote($language));
+            }
+            else
+            {
+              // Insert new translation.
+              $query = $db->getQuery(true)
+                ->insert($db->quoteName('#__joomgallery_category_translations'))
+                ->columns(
+                  [
+                    $db->quoteName('category_id'),
+                    $db->quoteName('language'),
+                    $db->quoteName('title'),
+                    $db->quoteName('alias'),
+                  ]
+                )
+                ->values(
+                  (int) $table->id . ', ' .
+                  $db->quote($language) . ', ' .
+                  $db->quote($title) . ', ' .
+                  $db->quote($alias)
+                );
+            }
+
+            $db->setQuery($query);
+            $db->execute();
+          }
+        }
+
+        // Handle folders if parent category was changed
 
         // Handle folders if parent category was changed
         if(!$isNew && $catMoved)
