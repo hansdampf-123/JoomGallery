@@ -546,8 +546,8 @@ class TagsModel extends JoomListModel
 
     $query->select(
         [
-        $db->quoteName('ref.imgid'),
-        $db->quoteName('a.title'),
+          $db->quoteName('ref.imgid'),
+          $db->quoteName('a.title'),
         ]
     );
 
@@ -563,8 +563,8 @@ class TagsModel extends JoomListModel
     $query->whereIn($db->quoteName('ref.imgid'), $imageIds, ParameterType::INTEGER);
     $query->order(
         [
-        $db->quoteName('ref.imgid') . ' ASC',
-        $db->quoteName('a.title') . ' ASC',
+          $db->quoteName('ref.imgid') . ' ASC',
+          $db->quoteName('a.title') . ' ASC',
         ]
     );
 
