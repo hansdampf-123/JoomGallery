@@ -522,7 +522,7 @@ class TagsModel extends JoomListModel
     return $items;
   }
 
-   /**
+  /**
    * Get tag titles mapped to multiple images.
    *
    * @param   array  $imageIds  List of image ids
