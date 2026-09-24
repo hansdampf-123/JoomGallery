@@ -200,7 +200,7 @@ $fields = FieldsHelper::getFields('com_joomgallery.image', $this->item);
             <td><?php echo (int) $this->item->downloads; ?></td>
           </tr>
         <?php endif; ?>
-        <?php if($show_tags) : ?>
+        <?php if($show_tags && trim(strip_tags($tags)) !== '-' && trim(strip_tags($tags)) !== '') : ?>
           <tr>
             <th><?php echo Text::_('COM_JOOMGALLERY_TAGS'); ?></th>
             <td><?php echo $tags; ?></td>
