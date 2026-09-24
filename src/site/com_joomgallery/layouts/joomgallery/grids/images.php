@@ -21,6 +21,7 @@ extract($displayData);
 
 $lightbox_show_tags = (bool) ($lightbox_show_tags ?? false);
 $lightbox_tags      = $lightbox_tags ?? [];
+$image_tags_data    = $image_tags_data ?? [];
 
 /**
  * Layout variables
@@ -43,6 +44,7 @@ $lightbox_tags      = $lightbox_tags ?? [];
  * @var   bool     $image_tags        True to display the image tags
  * @var   bool     $lightbox_show_tags True to display image tags in the lightbox caption
  * @var   array    $lightbox_tags      Image tags indexed by image id
+ * @var   array    $image_tags_data    Image tags indexed by image id
  */
 ?>
 
@@ -200,7 +202,12 @@ $lightbox_tags      = $lightbox_tags ?? [];
               <div><?php echo Text::_('JAUTHOR') . ': ' . $this->escape($item->author); ?></div>
             <?php endif; ?>
             <?php if($image_tags) : ?>
-              <div><?php echo Text::_('COM_JOOMGALLERY_TAGS') . ': '; ?></div>
+              <?php $tags = $image_tags_data[(int) $item->id] ?? []; ?>
+              <?php if(!empty($tags)) : ?>
+                <div>
+                  <?php echo Text::_('COM_JOOMGALLERY_TAGS') . ': ' . $this->escape(implode(', ', $tags)); ?>
+                </div>
+              <?php endif; ?>
             <?php endif; ?>
           </div>
         <?php endif; ?>
