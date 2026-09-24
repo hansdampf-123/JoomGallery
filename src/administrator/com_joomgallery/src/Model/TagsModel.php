@@ -544,25 +544,29 @@ class TagsModel extends JoomListModel
     $db    = $this->getDatabase();
     $query = $db->getQuery(true);
 
-    $query->select([
-      $db->quoteName('ref.imgid'),
-      $db->quoteName('a.title'),
-    ]);
+    $query->select(
+        [
+        $db->quoteName('ref.imgid'),
+        $db->quoteName('a.title'),
+        ]
+    );
 
     $query->from($db->quoteName(_JOOM_TABLE_TAGS, 'a'));
 
     $query->join(
-      'INNER',
-      $db->quoteName(_JOOM_TABLE_TAGS_REF, 'ref')
-      . ' ON ' . $db->quoteName('ref.tagid')
-      . ' = ' . $db->quoteName('a.id')
+        'INNER',
+        $db->quoteName(_JOOM_TABLE_TAGS_REF, 'ref')
+        . ' ON ' . $db->quoteName('ref.tagid')
+        . ' = ' . $db->quoteName('a.id')
     );
 
     $query->whereIn($db->quoteName('ref.imgid'), $imageIds, ParameterType::INTEGER);
-    $query->order([
-      $db->quoteName('ref.imgid') . ' ASC',
-      $db->quoteName('a.title') . ' ASC',
-    ]);
+    $query->order(
+        [
+        $db->quoteName('ref.imgid') . ' ASC',
+        $db->quoteName('a.title') . ' ASC',
+        ]
+    );
 
     $db->setQuery($query);
 

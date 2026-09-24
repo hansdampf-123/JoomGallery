@@ -150,13 +150,13 @@ $lightbox_tags      = $lightbox_tags ?? [];
 
                           if(!empty($tags))
                           {
-                              $tagText = implode(
-                                  ' | ',
-                                  array_map(
-                                      static fn($tag) => htmlspecialchars($tag, ENT_QUOTES, 'UTF-8'),
-                                      $tags
-                                  )
-                              );
+                            $tagText = implode(
+                                ' | ',
+                                array_map(
+                                    static fn($tag) => htmlspecialchars($tag, ENT_QUOTES, 'UTF-8'),
+                                    $tags
+                                )
+                            );
 
                               $caption .= $caption !== '' ? ' | ' . $tagText : $tagText;
                           }

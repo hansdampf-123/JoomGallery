@@ -83,13 +83,13 @@ $lightbox_tags = [];
 
 if($lightbox_show_tags && !empty($this->item->images->items))
 {
-  $imageIds = array_map(
+$imageIds = array_map(
     static fn($item) => (int) $item->id,
     $this->item->images->items
-  );
+);
 
-  $component  = Factory::getApplication()->bootComponent('com_joomgallery');
-  $tagsModel  = $component->getMVCFactory()->createModel('Tags', 'administrator');
+  $component     = Factory::getApplication()->bootComponent('com_joomgallery');
+  $tagsModel     = $component->getMVCFactory()->createModel('Tags', 'administrator');
   $lightbox_tags = $tagsModel->getMappedTitlesByImageIds($imageIds);
 }
 ?>
