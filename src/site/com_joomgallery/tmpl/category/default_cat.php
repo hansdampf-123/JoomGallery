@@ -79,18 +79,18 @@ $wa->useStyle('com_joomgallery.jg-icon-font');
 <?php endif; ?>
 
 <?php
-$lightbox_tags = [];
+$image_tags_data = [];
 
-if($lightbox_show_tags && !empty($this->item->images->items))
+if(($show_tags || $lightbox_show_tags) && !empty($this->item->images->items))
 {
 $imageIds = array_map(
     static fn($item) => (int) $item->id,
     $this->item->images->items
 );
 
-  $component     = Factory::getApplication()->bootComponent('com_joomgallery');
-  $tagsModel     = $component->getMVCFactory()->createModel('Tags', 'administrator');
-  $lightbox_tags = $tagsModel->getMappedTitlesByImageIds($imageIds);
+  $component       = Factory::getApplication()->bootComponent('com_joomgallery');
+  $tagsModel       = $component->getMVCFactory()->createModel('Tags', 'administrator');
+  $image_tags_data = $tagsModel->getMappedTitlesByImageIds($imageIds);
 }
 ?>
 
@@ -297,7 +297,8 @@ $returnURL  = base64_encode(JoomHelper::getViewRoute('category', $this->item->id
       'image_title'   => (bool) $show_title, 'title_link' => $title_link, 'image_desc' => (bool) $show_description, 'image_desc_label' => (bool) $show_description_label,
       'image_date'    => (bool) $show_imgdate, 'image_author' => (bool) $show_imgauthor, 'image_tags' => (bool) $show_tags,
       'lightbox_show_tags' => (bool) $lightbox_show_tags,
-      'lightbox_tags' => $lightbox_tags,
+      'image_tags_data' => $image_tags_data,
+      'lightbox_tags'   => $image_tags_data,
     ];
   ?>
 
