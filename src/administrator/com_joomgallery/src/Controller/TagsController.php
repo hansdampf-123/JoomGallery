@@ -74,6 +74,25 @@ class TagsController extends JoomAdminController
   }
 
   /**
+   * Show images assigned to a tag.
+   *
+   * @return  void
+   *
+   * @since   __DEPLOY_VERSION__
+   */
+  public function showImages()
+  {
+    $tagId = $this->input->getInt('tag_id');
+
+    if($tagId > 0)
+    {
+      $this->app->setUserState('com_joomgallery.images.filter.tag', [$tagId]);
+    }
+
+    $this->setRedirect('index.php?option=' . _JOOM_OPTION . '&view=images');
+  }
+
+  /**
    * Proxy for getModel.
    *
    * @param   string  $name    Optional. Model name
