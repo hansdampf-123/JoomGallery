@@ -185,7 +185,7 @@ if($saveOrder && !empty($this->items))
                 <td class="small d-none d-md-table-cell text-center">
                   <?php
                     $imagesUrl = Route::_(
-                      'index.php?option=com_joomgallery&task=tags.showImages&tag_id=' . (int) $item->id
+                        'index.php?option=com_joomgallery&task=tags.showImages&tag_id=' . (int) $item->id
                     );
                   ?>
                   <a href="<?php echo $imagesUrl; ?>" class="badge bg-info text-decoration-none">
