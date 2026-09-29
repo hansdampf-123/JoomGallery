@@ -205,7 +205,7 @@ $image_tags_data    = $image_tags_data ?? [];
               <?php $tags = $image_tags_data[(int) $item->id] ?? []; ?>
               <?php if(!empty($tags)) : ?>
                 <div>
-                  <?php echo Text::_('COM_JOOMGALLERY_TAGS') . ': ' . $this->escape(implode(', ', $tags)); ?>
+                  <?php echo Text::_('COM_JOOMGALLERY_TAGS') . ': ' . $this->escape(implode(' | ', $tags)); ?>
                 </div>
               <?php endif; ?>
             <?php endif; ?>
