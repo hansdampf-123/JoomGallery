@@ -30,6 +30,7 @@ HTMLHelper::_('bootstrap.tooltip', '.hasTip');
 $app       = Factory::getApplication();
 $form      = $this->getForm();
 $fieldSets = $form->getFieldsets();
+$originId  = $app->input->getInt('origin_id');
 
 // In case of modal
 $isModal = $app->input->get('layout') === 'modal';
@@ -38,7 +39,7 @@ $tmpl    = $isModal || $app->input->get('tmpl', '', 'cmd') === 'component' ? '&t
 ?>
 
 <form
-  action="<?php echo Route::_('index.php?option=com_joomgallery&layout=' . $layout . $tmpl . '&id=' . (int) $this->item->id); ?>"
+  action="<?php echo Route::_('index.php?option=com_joomgallery&layout=' . $layout . $tmpl . '&id=' . (int) $this->item->id . ($originId ? '&origin_id=' . $originId : '')); ?>"
   method="post" enctype="multipart/form-data" name="adminForm" id="image-form" class="form-validate"
   aria-label="<?php echo Text::_('COM_JOOMGALLERY_IMAGE_' . ((int) $this->item->id === 0 ? 'NEW' : 'EDIT'), true); ?>" >
 
@@ -50,7 +51,7 @@ $tmpl    = $isModal || $app->input->get('tmpl', '', 'cmd') === 'component' ? '&t
       <?php echo $this->form->renderField('alias'); ?>
     </div>
     <div class="col-12 col-md-4">
-      <?php echo $this->form->renderField('image'); ?>
+<?php echo $this->form->renderField('image'); ?>
       <?php echo $this->form->renderField('filename'); ?>
     </div>
   </div>
@@ -80,6 +81,16 @@ $tmpl    = $isModal || $app->input->get('tmpl', '', 'cmd') === 'component' ? '&t
     </div>
   </div>
   <?php echo HTMLHelper::_('uitab.endTab'); ?>
+
+  <?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'associations', Text::_('COM_JOOMGALLERY_ASSOCIATIONS', true)); ?>
+  <div class="row">
+    <div class="col-12">
+      <?php echo $this->form->renderFieldset('item_associations'); ?>
+    </div>
+  </div>
+
+  <?php echo HTMLHelper::_('uitab.endTab'); ?>
+
 
   <?php echo HTMLHelper::_('uitab.addTab', 'myTab', 'Images', Text::_('COM_JOOMGALLERY_IMAGES', true)); ?>
   <div class="row">
@@ -199,6 +210,35 @@ $tmpl    = $isModal || $app->input->get('tmpl', '', 'cmd') === 'component' ? '&t
   <?php echo HTMLHelper::_('form.token'); ?>
 
 </form>
+
+<script>
+  const imageForm = document.getElementById('image-form');
+  const frameElement = window.frameElement;
+
+  if(imageForm && frameElement)
+  {
+    const frameUrl = new URL(frameElement.src, window.location.origin);
+    const originId = frameUrl.searchParams.get('origin_id');
+
+    if(originId)
+    {
+      const formAction = new URL(imageForm.action, window.location.origin);
+      formAction.searchParams.set('origin_id', originId);
+      imageForm.action = formAction.toString();
+    }
+  }
+</script>
+
+<script>
+  if(window.parent !== window && <?php echo (int) $this->item->id; ?> && <?php echo $originId ? 'true' : 'false'; ?>)
+  {
+    window.parent.postMessage({
+      messageType: 'joomla:content-select',
+      id: <?php echo (int) $this->item->id; ?>,
+      title: <?php echo json_encode((string) $this->item->title, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+    }, window.location.origin);
+  }
+</script>
 
 <?php
 $mediaManagerBtn = '<joomla-toolbar-button><button class="btn disabled" disabled>' . Text::_('COM_JOOMGALLERY_IMAGE_EDIT') . '</button></joomla-toolbar-button>';

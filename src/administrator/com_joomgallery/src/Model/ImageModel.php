@@ -18,6 +18,7 @@ use Joomgallery\Component\Joomgallery\Administrator\Helper\JoomHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Form\FormFactoryInterface;
+use Joomla\CMS\Language\Associations;
 use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
@@ -42,6 +43,13 @@ class ImageModel extends JoomAdminModel
    * @var     string
    */
   protected $type = 'image';
+
+/**
+ * Associations context.
+ *
+ * @var string
+ */
+protected $associationsContext = 'com_joomgallery.image';
 
   /**
    * The event to trigger after recreation of imagetypes.
@@ -123,6 +131,45 @@ class ImageModel extends JoomAdminModel
     {
       return false;
     }
+
+$originId = $this->app->getInput()->getInt('origin_id');
+
+if(!$originId)
+{
+  $originId = (int) $form->getValue('origin_id');
+}
+
+if($originId)
+{
+  $form->setFieldAttribute('image', 'required', 'false');
+}
+
+      if($originId && $forcedLanguage)
+{
+  $sourceImage = JoomHelper::getRecord('image', $originId);
+
+  if($sourceImage && !empty($sourceImage->catid))
+  {
+    $categoryAssociations = Associations::getAssociations(
+        'com_joomgallery',
+        '#__joomgallery_categories',
+        'com_joomgallery.category',
+        $sourceImage->catid,
+        'id',
+        '',
+        ''
+    );
+
+    if(isset($categoryAssociations[$forcedLanguage]))
+    {
+    $form->setValue(
+        'catid',
+        null,
+        $categoryAssociations[$forcedLanguage]->id
+    );
+    }
+  }
+      }
 
     // On edit, we get ID from state, but on save, we use data from input
     $id = (int) $this->getState('image.id', $this->app->getInput()->getInt('id', null));
@@ -207,10 +254,10 @@ class ImageModel extends JoomAdminModel
    */
   public function getItem($pk = null)
   {
-    if(!\is_null($this->item) && !empty($this->item->id))
-    {
-      return $this->item;
-    }
+if(!\is_null($this->item) && !empty($this->item->id) && isset($this->item->associations))
+{
+  return $this->item;
+}
 
     $pk    = (!empty($pk)) ? $pk : (int) $this->getState('image.id');
     $table = $this->getTable();
@@ -238,6 +285,26 @@ class ImageModel extends JoomAdminModel
     }
 
     $this->item = $table->getFieldsValues();
+
+    if($this->associationsContext && Associations::isEnabled())
+    {
+    $associations = Associations::getAssociations(
+        'com_joomgallery',
+        '#__joomgallery',
+        'com_joomgallery.image',
+        $this->item->id,
+        'id',
+        '',
+        ''
+    );
+
+      $this->item->associations = [];
+
+      foreach($associations as $language => $association)
+      {
+        $this->item->associations[$language] = $association->id;
+      }
+    }
 
     return $this->item;
   }
@@ -367,6 +434,14 @@ class ImageModel extends JoomAdminModel
       $isCopy = true;
     }
 
+    // Are we going to create an image from an existing source image?
+    $source_id = $app->input->get('origin_id', 0, 'INT');
+
+    if($source_id > 0)
+    {
+      $isCopy = true;
+    }
+
     // Are we going to save image in an ajax request?
     if(strpos($app->input->get('task'), 'ajaxsave') !== false)
     {
@@ -475,9 +550,6 @@ class ImageModel extends JoomAdminModel
       // Create file manager service
       $manager = JoomHelper::getService('FileManager', [$data['catid']]);
 
-      // Get source image id
-      $source_id = $app->input->get('origin_id', false, 'INT');
-
       // Handle images if category was changed
       if(!$isNew && ($catMoved || $aliasChanged))
       {
@@ -522,6 +594,16 @@ class ImageModel extends JoomAdminModel
       {
         // Get source img object
         $src_img = JoomHelper::getRecord('image', $source_id);
+
+      if($source_id > 0 && !$imgUploaded)
+      {
+        $sourceImage = JoomHelper::getRecord('image', $source_id);
+
+        if($sourceImage)
+        {
+          $data['filename'] = $sourceImage->filename;
+        }
+      }
 
         if($src_img->filesystem !== $table->filesystem)
         {
@@ -1306,6 +1388,65 @@ class ImageModel extends JoomAdminModel
     $this->cleanCache();
 
     return true;
+  }
+
+  /**
+   * Allows preprocessing of the JForm object.
+   *
+   * @param   \Joomla\CMS\Form\Form  $form   The form object.
+   * @param   array                  $data   The data to be merged into the form object.
+   * @param   string                 $group  The plugin group to be executed.
+   *
+   * @return  void
+   *
+   * @since   4.5.0
+   */
+  protected function preprocessForm(\Joomla\CMS\Form\Form $form, $data, $group = 'joomgallery')
+  {
+    $languages = \Joomla\CMS\Language\LanguageHelper::getContentLanguages(false, false, null, 'ordering', 'asc');
+
+    if(\count($languages) > 1)
+    {
+      $addform = new \SimpleXMLElement('<form />');
+      $fields  = $addform->addChild('fields');
+      $fields->addAttribute('name', 'associations');
+
+      $fieldset = $fields->addChild('fieldset');
+      $fieldset->addAttribute('name', 'item_associations');
+      $fieldset->addAttribute('addfieldprefix', 'Joomgallery\Component\Joomgallery\Administrator\Field');
+
+      $currentLanguage = \is_object($data)
+        ? ($data->language ?? '')
+        : ($data['language'] ?? '');
+
+      foreach($languages as $language)
+      {
+        if($language->lang_code === $currentLanguage)
+        {
+          continue;
+        }
+
+        $field = $fieldset->addChild('field');
+        $field->addAttribute('name', $language->lang_code);
+        $field->addAttribute('type', 'jgimage');
+        $field->addAttribute('forcedLanguage', $language->lang_code);
+        $field->addAttribute('language', $language->lang_code);
+        $field->addAttribute('label', $language->title);
+        $field->addAttribute('translate_label', 'false');
+        $field->addAttribute('extension', 'com_joomgallery');
+        $field->addAttribute('select', 'true');
+        $field->addAttribute('new', 'true');
+        $field->addAttribute('edit', 'true');
+        $field->addAttribute('clear', 'true');
+        $field->addAttribute('urlNew', 'index.php?option=com_joomgallery&task=image.add&id=0');
+        $field->addAttribute('urlEdit', 'index.php?option=com_joomgallery&task=image.edit&id=');
+        $field->addAttribute('propagate', 'true');
+      }
+
+      $form->load($addform, false);
+    }
+
+    parent::preprocessForm($form, $data, $group);
   }
 
   /**
