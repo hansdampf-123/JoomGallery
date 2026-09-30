@@ -151,29 +151,29 @@ class JgimageField extends FormField
             $name = $this->value;
         }
 
-    $canDo = [
-    'select' => (string) $this->element['select'] !== 'false',
-    'new'    => (string) $this->element['new'] === 'true',
-    'edit'   => (string) $this->element['edit'] === 'true',
-    'clear'  => (string) $this->element['clear'] !== 'false',
-];
+        $canDo = [
+          'select' => (string) $this->element['select'] !== 'false',
+          'new'    => (string) $this->element['new'] === 'true',
+          'edit'   => (string) $this->element['edit'] === 'true',
+          'clear'  => (string) $this->element['clear'] !== 'false',
+        ];
 
-$urls = [
-    'select'  => (string) $this->element['urlSelect'],
-    'new'     => (string) $this->element['urlNew'],
-    'edit'    => (string) $this->element['urlEdit'],
-    'checkin' => '',
-];
+        $urls = [
+          'select'  => (string) $this->element['urlSelect'],
+          'new'     => (string) $this->element['urlNew'],
+          'edit'    => (string) $this->element['urlEdit'],
+          'checkin' => '',
+        ];
 
-$modalTitles = [
-    'select' => 'JSELECT',
-    'new'    => 'JACTION_CREATE',
-    'edit'   => 'JACTION_EDIT',
-];
+        $modalTitles = [
+          'select' => 'JSELECT',
+          'new'    => 'JACTION_CREATE',
+          'edit'   => 'JACTION_EDIT',
+        ];
 
-$buttonIcons = [
-    'select' => 'icon-file',
-];
+        $buttonIcons = [
+          'select' => 'icon-file',
+        ];
 
         $extraData = [
           'imageName'  => $name,
