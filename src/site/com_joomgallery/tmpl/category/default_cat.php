@@ -58,6 +58,7 @@ $lightbox_image         = $this->params['configs']->get('jg_lightbox_image', 'de
 $lightbox_thumbnails    = $this->params['configs']->get('jg_lightbox_thumbnails', 0, 'INT');
 $lightbox_zoom          = $this->params['configs']->get('jg_lightbox_zoom', 0, 'INT');
 $lightbox_show_tags     = $this->params['configs']->get('jg_lightbox_show_tags', 0, 'INT');
+$show_tags_label        = $this->params['configs']->get('jg_category_view_show_tags_label', 1, 'INT');
 
 // Import CSS & JS
 $wa = $this->document->getWebAssetManager();
@@ -299,6 +300,7 @@ $returnURL  = base64_encode(JoomHelper::getViewRoute('category', $this->item->id
       'lightbox_show_tags' => (bool) $lightbox_show_tags,
       'image_tags_data' => $image_tags_data,
       'lightbox_tags'   => $image_tags_data,
+      'image_tags_label' => (bool) $show_tags_label,
     ];
   ?>
 
