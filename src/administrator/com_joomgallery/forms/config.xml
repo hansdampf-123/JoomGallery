@@ -1308,7 +1308,7 @@
             default="0"
             layout="joomla.form.field.radio.switcher"
             validate="options"
-            showon="jg_category_view_image_link:lightgallery[OR]jg_category_view_title_link:lightgallery"
+            showon="jg_category_view_show_tags:1"
             >
             <option value="0">JNO</option>
             <option value="1">JYES</option>
