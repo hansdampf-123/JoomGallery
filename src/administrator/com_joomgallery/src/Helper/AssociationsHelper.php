@@ -1,10 +1,15 @@
 <?php
 /**
  * *********************************************************************************
- *    @package    com_joomgallery                                                 **
- *    @author     JoomGallery::ProjectTeam <team@joomgalleryfriends.net>          **
- *    @copyright  2008 - 2026  JoomGallery::ProjectTeam                           **
- *    @license    GNU General Public License version 3 or later                   **
+ *
+ * @category  JoomGallery
+ * @package   Com_Joomgallery
+ * @author    JoomGallery::ProjectTeam <team@joomgalleryfriends.net>
+ * @copyright 2008 - 2026 JoomGallery::ProjectTeam
+ * @license   GNU General Public License version 3 or later
+ * @version   GIT: <git_id>
+ * @link      https://www.joomgalleryfriends.net
+ * @since     4.5.0
  * *********************************************************************************
  */
 
