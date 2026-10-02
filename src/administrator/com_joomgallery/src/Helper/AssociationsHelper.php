@@ -15,6 +15,15 @@ namespace Joomgallery\Component\Joomgallery\Administrator\Helper;
 use Joomla\CMS\Association\AssociationExtensionHelper;
 use Joomla\CMS\Language\Associations;
 
+/**
+ * Association helper for JoomGallery content.
+ *
+ * Provides Joomla core multilingual association support for JoomGallery.
+ *
+ * @package    com_joomgallery
+ *
+ * @since      4.5.0
+ */
 class AssociationsHelper extends AssociationExtensionHelper
 {
   protected $extension = 'com_joomgallery';
@@ -23,11 +32,31 @@ class AssociationsHelper extends AssociationExtensionHelper
 
   protected $associationsSupport = true;
 
+/**
+ * Get the associations for a JoomGallery category.
+ *
+ * @param   int         $id    The category ID.
+ * @param   string|null $view  The view name.
+ *
+ * @return  array  The associated categories.
+ *
+ * @since   4.5.0
+ */
   public function getAssociationsForItem($id = 0, $view = null)
   {
     return $this->getAssociations('category', $id);
   }
 
+/**
+ * Get the associations for a category.
+ *
+ * @param   string $typeName  The association type.
+ * @param   int    $id        The category ID.
+ *
+ * @return  array  The associated categories or an empty array.
+ *
+ * @since   4.5.0
+ */
   public function getAssociations($typeName, $id)
   {
     if($typeName !== 'category')
@@ -35,6 +64,7 @@ class AssociationsHelper extends AssociationExtensionHelper
       return [];
     }
 
+    // JoomGallery uses Joomla's core association system for its multilingual content.
     return Associations::getAssociations(
         $this->extension,
         '#__joomgallery_categories',
@@ -46,6 +76,15 @@ class AssociationsHelper extends AssociationExtensionHelper
     );
   }
 
+/**
+ * Get the association type configuration.
+ *
+ * @param   string $typeName  The association type.
+ *
+ * @return  array  The association type configuration.
+ *
+ * @since   4.5.0
+ */
   public function getType($typeName = '')
   {
     if($typeName !== 'category')
@@ -59,6 +98,7 @@ class AssociationsHelper extends AssociationExtensionHelper
       ];
     }
 
+    // Build the configuration from Joomla's default association templates.
     $fields  = $this->getFieldsTemplate();
     $support = $this->getSupportTemplate();
 

@@ -64,7 +64,7 @@ class DefaultRouter extends RouterView
    *
    * @since  4.0.0
    */
-  public static string $image_parentID = 'catid';
+  public static string $image_parentID = '';
 
   /**
    * Param to use ids in URLs
@@ -134,7 +134,7 @@ class DefaultRouter extends RouterView
     $this->registerView($images);
 
     $image = new RouterViewConfiguration('image');
-    $image->setKey('id')->setParent($category, 'catid');
+    $image->setKey('id')->setParent($images);
     $this->registerView($image);
 
     $userpanel = new RouterViewConfiguration('userpanel');
@@ -766,35 +766,6 @@ class DefaultRouter extends RouterView
         // We can identify the image via a request query variable of type catid
         $dbquery->where($this->db->quoteName('catid') . ' = :catid');
         $dbquery->bind(':catid', $cat, ParameterType::INTEGER);
-      }
-
-      if(key_exists('view', $query) && $query['view'] == 'category' && key_exists('id', $query))
-      {
-        $categoryIds = [(int) $query['id']];
-
-        if(Multilanguage::isEnabled() && Associations::isEnabled())
-        {
-        $associations = Associations::getAssociations(
-            'com_joomgallery',
-            '#__joomgallery_categories',
-            'com_joomgallery.category',
-            (int) $query['id'],
-            'id',
-            '',
-            ''
-        );
-
-          foreach($associations as $association)
-          {
-            $categoryIds[] = (int) $association->id;
-          }
-        }
-
-        $dbquery->whereIn(
-            $this->db->quoteName('catid'),
-            array_unique($categoryIds),
-            ParameterType::INTEGER
-        );
       }
 
       $this->db->setQuery($dbquery);
